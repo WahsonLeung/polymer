@@ -1447,7 +1447,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @author by WahsonLeung
        */
       _addNestedObserveEffect(target, path) {
-        if(typeof target !== 'object' && typeof target !== 'array'){
+        if(typeof target !== 'object'){
           console.warn(`nestedObserve cannot take effect for a non-object: ${target}`);
           return target;
         }
