@@ -1442,13 +1442,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       /**
-       * TODO(wahson):
-       * 1、if property is not an object
-       * 2、support for array
-       * @param {object or Array} property
-       * @param {string} path
+       * @param {object or Array} target Target that need nested observe
+       * @param {string} path Path that should be notified.
+       * @author by WahsonLeung
        */
-      _initProxy(property, path) {
+      _addNestedObserveEffect(target, path) {
+        if(typeof target !== 'object' && typeof target !== 'array'){
+          console.warn(`nestedObserve cannot take effect for a non-object: ${target}`);
+          return target;
+        }
+
         let handler = (path) => {
           return {
             set: (trapTarget, propKey, value, receiver) => {
@@ -1469,7 +1472,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
         };
 
-        return new Proxy(property, handler(path));
+        return new Proxy(target, handler(path));
       }
 
       /**
@@ -1507,11 +1510,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         let prevProps = isPath ? this.__dataTemp : this.__data;
         if (this._shouldPropertyChange(property, value, prevProps[property])) {
           /**
-           * replace value with a proxy instance by @wahsonLeung
+           * replace value with a proxy instance if property is nestedObserve
+           * @author by WahsonLeung
            */
-          let _prop = this.constructor.__ownProperties[property];
-          if (_prop && _prop.nestedObserve) {
-            value = this._initProxy(value, property);
+          if(!!this.constructor.__ownProperties) {
+            let _prop = this.constructor.__ownProperties[property];
+            if (_prop && _prop.nestedObserve) {
+              value = this._addNestedObserveEffect(value, property);
+            }
           }
 
           if (!this.__dataPending) {
