@@ -472,6 +472,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     for (let i=0; i<note.parts.length; i++) {
       let part = note.parts[i];
       if (part.signature) {
+        if(part._needDynamicCreateBindingMethod){
+          model.constructor.prototype[part._fnName] = new Function(part._fnArgs, part._fnBody);
+        }
         addMethodBindingEffect(model, note, part, index, dynamicFns);
       } else if (!part.literal) {
         if (note.kind === 'attribute' && note.name[0] === '-') {
@@ -816,8 +819,82 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   const EXPRESSION = OPEN_BRACKET + NEGATE + BINDING + CLOSE_BRACKET;
   const bindingRegex = new RegExp(EXPRESSION, "g");
 
-  function parseBindings(text, hostProps) {
+  const TMPL_OPEN_BRACKET = '(?:{{{)';
+  const TMPL_CLOSE_BRACKET = '(?:}}})';
+  const TMPL_ARG = '(?:\\s*[a-zA-Z_$]\\s*\\:\\s*' +  IDENT + '\\s*)';
+  const TMPL_ARGS = '(?:' + TMPL_ARG + '(?:,' + TMPL_ARG + ')*'  + ')';
+  const TMPL_EXPRESSION = TMPL_OPEN_BRACKET + '(' + TMPL_ARGS + ')\\s*\\=\\>\\s*([^}]*)' + TMPL_CLOSE_BRACKET;
+  const tmplExpBindingRegex = new RegExp(TMPL_EXPRESSION, 'gm');
+
+  /**
+   * @param text
+   * @returns {Array}
+   * @author WahsonLeung
+   */
+  function parseTemplateExpression(text,hostProps){
+    //Example: "literal1{{{f: foo.bar,l: bar => f.reverse() + ' ' + l}}}literal2{{{f:foo => f.toString())}}}final"
+    //
+    // Regex matches:
+    //       Iteration 1:                         Iteration 2:
+    // m[1]: 'f: foo.bar,l: bar'                 'f:foo'
+    // m[2]: 'f.reverse() + ' ' + l'             'f.toString()'
     let parts = [];
+    let lastIndex = 0;
+    let m;
+    while((m = tmplExpBindingRegex.exec(text)) !== null){
+      let binds = [],
+          args = [],
+          fnName = 'tmplFn_' + new Date().getTime(),
+          funcBody = `return ${m[m.length - 1]}`;
+
+      m[1].trim().split(/\s*,\s*/g).forEach(arg => {
+        let ag = arg.split(/\s*:\s*/);
+        args.push(ag[0]);
+        binds.push(ag[1]);
+      });
+
+      // Add literal part
+      if (m.index > lastIndex) {
+        parts.push({literal: text.slice(lastIndex, m.index)});
+      }
+
+      let value = `${fnName}(${binds.join(',')})`;  //tmplFn_1492934376733(foo.bar,bar)
+      let signature = parseMethod(value, hostProps);
+      parts.push({
+        compoundIndex: parts.length,
+        value: value,
+        mode: '{',  //mode two-way
+        negate: false,
+        signature:signature,
+        _needDynamicCreateBindingMethod:true,
+        _fnName:fnName,
+        _fnArgs:args,
+        _fnBody:funcBody
+      });
+
+      lastIndex = tmplExpBindingRegex.lastIndex;
+    }
+
+    // Add a final literal part
+    if (lastIndex && lastIndex < text.length) {
+      let literal = text.substring(lastIndex);
+      if (literal) {
+        parts.push({
+          literal: literal
+        });
+      }
+    }
+
+    if(parts.length) {
+      return parts;
+    }
+  }
+
+  function parseBindings(text, hostProps) {
+    let parts = parseTemplateExpression(text,hostProps);
+    if(parts && parts.length) return parts;
+
+    parts = [];
     let lastIndex = 0;
     let m;
     // Example: "literal1{{prop}}literal2[[!compute(foo,bar)]]final"
