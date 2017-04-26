@@ -2315,7 +2315,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           while((m = tmplExpBindingRegex.exec(text)) !== null){
             let binds = [],
                 args = [],
-                fnName = 'tmplFn_' + new Date().getTime(),
+                fnName = `tmplFn_${new Date().getTime()}_${Math.floor(Math.random() * 10000)}`,
                 funcBody = `return ${m[m.length - 1]}`;
 
             m[1].trim().split(/\s*,\s*/g).forEach(arg => {
