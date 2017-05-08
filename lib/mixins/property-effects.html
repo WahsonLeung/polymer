@@ -14,6 +14,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../utils/path.html">
 <!-- for notify, reflect -->
 <link rel="import" href="../utils/case-map.html">
+<link rel="import" href="../utils/simple-lexer.html">
 <link rel="import" href="property-accessors.html">
 <!-- for annotated effects -->
 <link rel="import" href="template-stamp.html">
@@ -793,9 +794,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     const TMPL_OPEN_BRACKET = '(?:{{{)';
     const TMPL_CLOSE_BRACKET = '(?:}}})';
-    const TMPL_ARG = '(?:\\s*[a-zA-Z_$]\\s*\\:\\s*' +  IDENT + '\\s*)';
-    const TMPL_ARGS = '(?:' + TMPL_ARG + '(?:,' + TMPL_ARG + ')*'  + ')';
-    const TMPL_EXPRESSION = TMPL_OPEN_BRACKET + '(' + TMPL_ARGS + ')\\s*\\=\\>\\s*([^}]*)' + TMPL_CLOSE_BRACKET;
+    const TMPL_EXPRESSION = TMPL_OPEN_BRACKET + '(\\s*[^}]*)' + TMPL_CLOSE_BRACKET;
     const tmplExpBindingRegex = new RegExp(TMPL_EXPRESSION, 'gm');
 
 
@@ -2303,26 +2302,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
          * @author WahsonLeung
          */
         static _parseTemplateExpression(text,templateInfo){
-          //Example: "literal1{{{f: foo.bar,l: bar => f.reverse() + ' ' + l}}}literal2{{{f:foo => f.toString())}}}final"
+          //Example: "literal1{{{foo.bar.reverse() + ' ' + bar}}}literal2{{{foo.toString())}}}final"
           //
           // Regex matches:
           //       Iteration 1:                         Iteration 2:
-          // m[1]: 'f: foo.bar,l: bar'                 'f:foo'
-          // m[2]: 'f.reverse() + ' ' + l'             'f.toString()'
+          // m[2]: 'foo.reverse() + ' ' + bar'             'foo.toString()'
           let parts = [];
           let lastIndex = 0;
           let m;
+          let dynamicFns = templateInfo.dynamicFns;
           while((m = tmplExpBindingRegex.exec(text)) !== null){
             let binds = [],
                 args = [],
                 fnName = `tmplFn_${new Date().getTime()}_${Math.floor(Math.random() * 10000)}`,
-                funcBody = `return ${m[m.length - 1]}`;
+                funcBody;
 
-            m[1].trim().split(/\s*,\s*/g).forEach(arg => {
-              let ag = arg.split(/\s*:\s*/);
-              args.push(ag[0]);
-              binds.push(ag[1]);
-            });
+            let tokens = Polymer.SimpleLexer.parseInput(m[1]);
+            tokens.filter(token => token.name === 'IDENTIFIER' && dynamicFns[Polymer.Path.root(token.value)] != undefined)
+                .forEach(token => {
+                  let argInd = binds.indexOf(token.value);
+                  //if token.value not a defined property
+                  if (argInd == -1) {
+                    binds.push(token.value);
+                    token.value = `_var${new Date().getTime()}_${Math.floor(Math.random() * 1000)}_`;
+                    args.push(token.value);
+                  } else {
+                    token.value = args[argInd];
+                  }
+                });
+
+            funcBody = 'return ' + tokens.map(token => {
+                  return token.value;
+                }).join('');
 
             // Add literal part
             if (m.index > lastIndex) {
@@ -2342,7 +2353,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   dependencies.push(arg);
                 }
               }
-              let dynamicFns = templateInfo.dynamicFns;
+
               if (dynamicFns && dynamicFns[methodName] || signature.static) {
                 dependencies.push(methodName);
               }
