@@ -19,16 +19,17 @@ Check out [polymer-project.org](https://www.polymer-project.org) for all of the 
 
 Or if you'd just like to download the library, check out our [releases page](https://github.com/polymer/polymer/releases).
 
-## Polymer 2.0 now at Release Candidate!
-Polymer 2.0 is now at Release Candidate stage, and will be the future focus of Polymer development going forward.  We intend to keep the 2.x public API stable barring critical feedback or issues during the release candidate period.  For background and migration information on the 2.x see the [2.0 documentation](https://www.polymer-project.org/2.0/docs/about_20) on the website or the [2.0 section below](#release-candidate), and we welcome your feedback via [issues](https://github.com/Polymer/polymer/issues/new) or [Slack](https://polymer-slack.herokuapp.com/).
+## Polymer 2.0 is out!
 
-**To evaluate Polymer 2.0**, please point your bower at the latest `2.0.0-rc.x` tag for polymer, and be sure load to the `webcomponentsjs/webcomponents-lite.js` or `webcomponentsjs/webcomponents-loader.js` polyfills from the latest `v1.0.0-rc.x` tag of [`webcomponentsjs`](https://github.com/webcomponents/webcomponentsjs)
+Polymer 2.0 is released, and will be the future focus of Polymer development going forward.  We intend to keep the 2.x public API stable barring critical issues.  For background and migration information on the 2.x see the [2.0 documentation](https://www.polymer-project.org/2.0/docs/about_20) on the website or the [2.0 section below](#2-0), and we welcome your feedback via [issues](https://github.com/Polymer/polymer/issues/new) or [Slack](https://polymer-slack.herokuapp.com/).
 
-👀 **Looking for Polymer v1.x?** Please see the [the v1 branch](https://github.com/Polymer/polymer/tree/1.x)
+**To evaluate Polymer 2.0**, please point your bower at the latest `2.0.0` tag for polymer, and be sure load to the `webcomponentsjs/webcomponents-lite.js` or `webcomponentsjs/webcomponents-loader.js` polyfills from the latest `v1.0.0` tag of [`webcomponentsjs`](https://github.com/webcomponents/webcomponentsjs).
+
+👀 **Looking for Polymer v1.x?** Please see the [the v1 branch](https://github.com/Polymer/polymer/tree/1.x).
 
 ## Overview
 
-Polymer is a lightweight library built on top of the web standards-based [Web Components](http://webcomponents.org/) API's, and makes it easier to build your very own custom HTML elements. Creating reusable custom elements - and using elements built by others - can make building complex web applications easier and more efficient. By being based on the Web Components API's built in the browser (or [polyfilled](https://github.com/webcomponents/webcomponentsjs) where needed), Polymer elements are interoperable at the browser level, and can be used with other frameworks or libraries that work with modern browsers.
+Polymer is a lightweight library built on top of the web standards-based [Web Components](http://webcomponents.org/) APIs, and makes it easier to build your very own custom HTML elements. Creating reusable custom elements - and using elements built by others - can make building complex web applications easier and more efficient. By being based on the Web Components API's built in the browser (or [polyfilled](https://github.com/webcomponents/webcomponentsjs) where needed), Polymer elements are interoperable at the browser level, and can be used with other frameworks or libraries that work with modern browsers.
 
 Among many ways to leverage custom elements, they can be particularly useful for building reusable UI components. Instead of continually re-building a specific navigation bar or button in different frameworks and for different projects, you can define this element once using Polymer, and then reuse it throughout your project or in any future project.
 
@@ -238,7 +239,8 @@ The Polymer library uses a BSD-like license that is available [here](./LICENSE.t
 -----------
 
 <a name="release-candidate"></a>
-# Polymer 2.0 (release candidate)
+<a name="2-0"></a>
+# Polymer 2.0
 
 Polymer 2.0 is a major new release of Polymer that is compatible with the latest web components standards and web platform APIs, and makes significant improvements over the 1.x version of the library.  The following section provides context and migration information for existing users of Polymer 1.x:
 
